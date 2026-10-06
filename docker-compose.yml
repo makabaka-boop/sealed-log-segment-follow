@@ -1,0 +1,23 @@
+services:
+  log-follower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: logfollower:local
+    environment:
+      LOG_DIR: /var/log/segments
+      # Fix this to identify one service run; omit only for throwaway testing.
+      # The client receives it in X-Log-Run-ID and every SSE event.
+      LOG_RUN_ID: ${LOG_RUN_ID:-}
+      LISTEN_ADDR: ":8080"
+      POLL_INTERVAL_MS: "20"
+      EVENT_BUFFER: "64"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/var/log/segments:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
