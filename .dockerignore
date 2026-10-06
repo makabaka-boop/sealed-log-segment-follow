@@ -1,0 +1,7 @@
+# Keep build context small and reproducible.
+.git
+.gitignore
+*.md
+logs/
+*.ndjson
+runtime.id

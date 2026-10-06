@@ -1,0 +1,37 @@
+services:
+  logfollow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: logfollow:latest
+    container_name: logfollow
+    restart: unless-stopped
+    ports:
+      # Host port 8080 -> container SSE endpoint.
+      - "8080:8080"
+    environment:
+      LOGFOLLOW_ADDR: ":8080"
+      LOGFOLLOW_DIR: "/logs"
+      LOGFOLLOW_POLL: "30ms"
+      LOGFOLLOW_BUFFER: "256"
+      LOGFOLLOW_FULL_WAIT: "2s"
+      LOGFOLLOW_HEARTBEAT: "15s"
+      LOGFOLLOW_FATAL_GRACE: "5s"
+    volumes:
+      # Producer's log directory, mounted READ-ONLY: the following service
+      # must observe segments, never mutate them.
+      - type: bind
+        source: ./logs
+        target: /logs
+        read_only: true
+      # Distroless has /tmp but no writable home; nothing else is required.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Liveness is exposed at GET /healthz over HTTP. distroless ships no
+    # shell or curl, so an in-container healthcheck command is intentionally
+    # omitted; probe the published port from the host/orchestrator.
